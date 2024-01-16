@@ -8,7 +8,7 @@
     <meta name="description" content="Mood Bloge">
     <meta name="keywords" content="Mood Blog,Homepage">
     <meta name="author" content="Mood Blog">
-    <title>Mood Blog</title>
+    <title>植物的书单</title>
     <link rel="stylesheet" type="text/css" href="./assets/css/onlinewebfonts.css"/>
     <link rel="stylesheet" type="text/css" href="./assets/css/vno.css">
     <link rel="stylesheet" type="text/css" href="./assets/css/iconfont.css">
@@ -40,14 +40,14 @@
                                         Fighting
                                     </h2>
                                     <p id="logoTitle2">
-                                        2023 · 突破
+                                        2024 · 一战定天下
                                     </p>
                                 </div>
                             </div>
                         </a>
                     </div>
                     <h1 class="panel-cover__title panel-title iUp">
-                        <a href="#" title="Dmego Home" id="name">Dmego</a>
+                        <a href="#" title="植物的书单" id="name">Dmego</a>
                     </h1>
                     <p class="panel-cover__subtitle panel-subtitle iUp" id="slogan">Code Create Life</p>
                     <hr class="panel-cover__divider iUp" />
@@ -141,9 +141,10 @@
 		document.getElementById("logoTitle2").innerHTML = info.get("logoTitle2");
 		
 		
+		
 		menuLink.forEach((item) => {
 			var menu = document.getElementById("menuLink");
-			var li = '<li class="navigation__item"><a href="'+item.name+'" class="blog-button" target="_blank" >'+item.name+'</a></li>'
+			var li = '<br><li class="navigation__item"><a href="'+item.link+'" class="blog-button" target="_blank" >'+item.name+'</a></li>'
 			menu.innerHTML += li;
 		})
 		socialLink.forEach((item) => {
