@@ -73,10 +73,13 @@
 <body>
     <div class="container">
         <div class="filter-container">
-            <select id="categoryFilter" onchange="filterTable()">
+            <select id="categoryFilter" onchange="filterTable(); loadSubCategories()">
                 <option value="">All Categories</option>
                 <option value="Fantasy">Fantasy</option>
                 <option value="History">History</option>
+            </select>
+            <select id="subCategoryFilter" onchange="filterTable()">
+                <option value="">All Subcategories</option>
             </select>
             <select id="ratingFilter" onchange="filterTable()">
                 <option value="">All Ratings</option>
@@ -95,6 +98,7 @@
                     <th>Author</th>
                     <th>Year</th>
                     <th>Category</th>
+                    <th>Subcategory</th>
                     <th>Rating</th>
                 </tr>
             </thead>
@@ -110,18 +114,37 @@
             return Promise.all(fetchPromises);
         }
 
-        function parseTextFiles(contents) {
-            const books = new Set(); // Use Set to avoid duplicates
-            contents.forEach(content => {
+        function parseTextFiles(contents, weights) {
+            const bookMap = new Map();
+            
+            contents.forEach((content, index) => {
                 const lines = content.split('\n');
+                const weight = weights[index];
                 lines.forEach(line => {
-                    const [name, author, year, category, rating] = line.split(',');
-                    if (name && author && year && category && rating) {
-                        books.add(JSON.stringify({ name, author, year, category, rating })); // Add book to Set
+                    const [name, author, year, category, subcategory, rating] = line.split(',');
+                    if (name && author && year && category && subcategory && rating) {
+                        const bookKey = name.toLowerCase(); // use lowercase for case-insensitive comparison
+                        const currentRating = parseFloat(rating);
+
+                        if (bookMap.has(bookKey)) {
+                            const bookData = bookMap.get(bookKey);
+                            bookData.totalWeight += weight;
+                            bookData.weightedSum += currentRating * weight;
+                        } else {
+                            bookMap.set(bookKey, {
+                                name, author, year, category, subcategory,
+                                totalWeight: weight,
+                                weightedSum: currentRating * weight
+                            });
+                        }
                     }
                 });
             });
-            return Array.from(books).map(book => JSON.parse(book)); // Convert Set back to Array
+
+            return Array.from(bookMap.values()).map(book => ({
+                ...book,
+                rating: (book.weightedSum / book.totalWeight).toFixed(2)
+            }));
         }
 
         function populateTable(books) {
@@ -134,6 +157,7 @@
                     <td data-label="Author">${book.author}</td>
                     <td data-label="Year">${book.year}</td>
                     <td data-label="Category">${book.category}</td>
+                    <td data-label="Subcategory">${book.subcategory}</td>
                     <td data-label="Rating">${book.rating}</td>
                 `;
                 tbody.appendChild(tr);
@@ -143,6 +167,7 @@
         function filterTable() {
             const nameInput = document.getElementById("nameFilter").value.toUpperCase();
             const categoryFilter = document.getElementById("categoryFilter").value.toUpperCase();
+            const subCategoryFilter = document.getElementById("subCategoryFilter").value.toUpperCase();
             const ratingFilter = document.getElementById("ratingFilter").value;
             const table = document.getElementById("bookTable");
             const tr = table.getElementsByTagName("tr");
@@ -153,11 +178,12 @@
                 for (let j = 0; j < td.length; j++) {
                     if (td[j]) {
                         const txtValue = td[j].textContent || td[j].innerText;
-                        const ratingValue = parseFloat(td[4].innerText);
+                        const ratingValue = parseFloat(td[5].innerText);
                         const ratingFilterValue = parseInt(ratingFilter);
                         if (
                             (td[0].innerText.toUpperCase().indexOf(nameInput) > -1 || nameInput === "") &&
                             (td[3].innerText.toUpperCase().indexOf(categoryFilter) > -1 || categoryFilter === "") &&
+                            (td[4].innerText.toUpperCase().indexOf(subCategoryFilter) > -1 || subCategoryFilter === "") &&
                             (ratingValue <= ratingFilterValue || ratingFilter === "")
                         ) {
                             tr[i].style.display = "";
@@ -168,10 +194,26 @@
             }
         }
 
+        function loadSubCategories() {
+            const category = document.getElementById("categoryFilter").value;
+            const subCategorySelect = document.getElementById("subCategoryFilter");
+
+            subCategorySelect.innerHTML = '<option value="">All Subcategories</option>'; // Reset subcategory options
+
+            if (category === "Fantasy") {
+                subCategorySelect.innerHTML += '<option value="Epic Fantasy">Epic Fantasy</option>';
+                subCategorySelect.innerHTML += '<option value="Urban Fantasy">Urban Fantasy</option>';
+            } else if (category === "History") {
+                subCategorySelect.innerHTML += '<option value="Ancient History">Ancient History</option>';
+                subCategorySelect.innerHTML += '<option value="Modern History">Modern History</option>';
+            }
+        }
+
         async function init() {
             const filePaths = ['./txt/books1.txt', './txt/books2.txt', './txt/books3.txt']; // Add your file paths here
+            const fileWeights = [10000, 1, 1]; // Adjust weights as needed
             const fileContents = await fetchTextFiles(filePaths);
-            const books = parseTextFiles(fileContents);
+            const books = parseTextFiles(fileContents, fileWeights);
             populateTable(books);
         }
 
