@@ -14,12 +14,53 @@
     <link rel="stylesheet" type="text/css" href="./assets/css/iconfont.css">
     <link rel="apple-touch-icon" href="./assets/img/apple-touch-icon.png">
     <link rel="icon" href="./assets/img/favicon.ico">
-	<style>
-		.logo1{
-			margin-top: 15px;
-			width: 30px;
-		}
-	</style>
+    <style>
+        .logo1 {
+            margin-top: 15px;
+            width: 30px;
+        }
+        /* Style the table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        /* Responsive table */
+        @media screen and (max-width: 600px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead tr {
+                display: none;
+            }
+            tr {
+                margin-bottom: 15px;
+            }
+            td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+            }
+            td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0;
+                width: 50%;
+                padding-left: 15px;
+                font-weight: bold;
+                text-align: left;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -75,84 +116,122 @@
             </div>
             <div class="panel-cover--overlay cover-slate"></div>
         </div>
-        <!--< div class="beian iUp">
-            <a class="icp" href="http://www.miitbeian.gov.cn/publish/query/indexFirst.action" target="_blank">XXX</a>
-            <a class="gwab" href="http://www.beian.gov.cn/portal/recordQuery" target="_blank">XXX</a>
-        </div> -->
-        <!-- <div class="remark iUp">
-            <p class="power">Powered By 
-                <a href="https://github.com/features/actions" target="_blank"> GitHub Actions </a> And 
-                <a href="https://hitokoto.cn/" target="_blank"> Hitokoto </a>
-            </p>
-        </div> -->
     </header>
+
+    <div class="content">
+        <input type="text" id="filterInput" onkeyup="filterTable()" placeholder="Search for names..">
+        <table id="bookTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Author</th>
+                    <th>Year</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td data-label="Name">Book 1</td>
+                    <td data-label="Author">Author 1</td>
+                    <td data-label="Year">2020</td>
+                </tr>
+                <tr>
+                    <td data-label="Name">Book 2</td>
+                    <td data-label="Author">Author 2</td>
+                    <td data-label="Year">2021</td>
+                </tr>
+                <!-- Add more rows as needed -->
+            </tbody>
+        </table>
+    </div>
+
     <script type="text/javascript" src="./assets/js/main.js"></script>
     <script type="text/javascript" src="./assets/json/images.json?cb=getBingImages"></script>
     <script type="text/javascript" src="./assets/js/axios.min.js"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-4L0GELWRT2');
+      
+      var info = new Map();
+      var menuLink = new Array();
+      var socialLink =  new Array()
+      
+      axios({
+            method: 'get',//提交方法
+            type:"application/json",
+            url: './config.json',//提交地址
+        }).then((res) => {
+            res.data.config.forEach((item) => {
+                item.options.forEach((i) => {
+                    if (i.key.indexOf("Href") != -1) {
+                        const isHttp = testHttp(i.value);
+                        if (i.value && !isHttp) {
+                          i.value = "http://" + i.value;
+                        } 
+                    }
+                    if(i.key.indexOf("socialLinkTable") != -1){
+                        console.log(i.items)
+                        socialLink = i.items;
+                    }else if(i.key.indexOf("menuLinkTable") != -1){
+                        menuLink = i.items;
+                    }else{
+                        info.set(i.key,i.value);
+                    }
+                });
+            });
+            edit();
+        })
+        function testHttp(link) {
+          var httpRegex = /(http|https):\/\/([\w.]+\/?)\S*/;
+          const httpMatch = httpRegex.exec(link);
+          return httpMatch;
+        }
+        function edit(){
+            
+            document.getElementById("name").innerHTML = info.get("name");
+            document.getElementById("name").href = info.get("nameHref");
+            document.getElementById("slogan").innerHTML = info.get("slogan");
+            document.getElementById("logo").src = info.get("logo");
+            document.getElementById("logoTitle1").innerHTML = info.get("logoTitle1");
+            document.getElementById("logoTitle2").innerHTML = info.get("logoTitle2");
+            
+            
+            
+            menuLink.forEach((item) => {
+                var menu = document.getElementById("menuLink");
+                var li = '<br><li class="navigation__item"><a href="'+item.link+'" class="blog-button" target="_blank" >'+item.name+'</a></li>'
+                menu.innerHTML += li;
+            })
+            socialLink.forEach((item) => {
+                console.log(item)
+                var social = document.getElementById("socialLink");
+                var li = '<li class="navigation__item"><a href="'+item.link+'" target="_blank"><img class="logo1" src="'+item.logo+'"/></a></li>';
+                social.innerHTML += li;
+            })
+            
+        }
+
+        function filterTable() {
+            var input, filter, table, tr, td, i, j, txtValue;
+            input = document.getElementById("filterInput");
+            filter = input.value.toUpperCase();
+            table = document.getElementById("bookTable");
+            tr = table.getElementsByTagName("tr");
+            for (i = 1; i < tr.length; i++) {
+                tr[i].style.display = "none";
+                td = tr[i].getElementsByTagName("td");
+                for (j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        txtValue = td[j].textContent || td[j].innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            tr[i].style.display = "";
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </body>
 </html>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-4L0GELWRT2');
-  
-  var info = new Map();
-  var menuLink = new Array();
-  var socialLink =  new Array()
-  
-  axios({
-        method: 'get',//提交方法
-		type:"application/json",
-        url: './config.json',//提交地址
-    }).then((res) => {
-		res.data.config.forEach((item) => {
-			item.options.forEach((i) => {
-				if (i.key.indexOf("Href") != -1) {
-					const isHttp = testHttp(i.value);
-					if (i.value && !isHttp) {
-					  i.value = "http://" + i.value;
-					} 
-				}
-				if(i.key.indexOf("socialLinkTable") != -1){
-					console.log(i.items)
-					socialLink = i.items;
-				}else if(i.key.indexOf("menuLinkTable") != -1){
-					menuLink = i.items;
-				}else{
-					info.set(i.key,i.value);
-				}
-			});
-		});
-		edit();
-    })
-	function testHttp(link) {
-	  var httpRegex = /(http|https):\/\/([\w.]+\/?)\S*/;
-	  const httpMatch = httpRegex.exec(link);
-	  return httpMatch;
-	}
-	function edit(){
-		
-		document.getElementById("name").innerHTML = info.get("name");
-		document.getElementById("name").href = info.get("nameHref");
-		document.getElementById("slogan").innerHTML = info.get("slogan");
-		document.getElementById("logo").src = info.get("logo");
-		document.getElementById("logoTitle1").innerHTML = info.get("logoTitle1");
-		document.getElementById("logoTitle2").innerHTML = info.get("logoTitle2");
-		
-		
-		
-		menuLink.forEach((item) => {
-			var menu = document.getElementById("menuLink");
-			var li = '<br><li class="navigation__item"><a href="'+item.link+'" class="blog-button" target="_blank" >'+item.name+'</a></li>'
-			menu.innerHTML += li;
-		})
-		socialLink.forEach((item) => {
-			console.log(item)
-			var social = document.getElementById("socialLink");
-			var li = '<li class="navigation__item"><a href="'+item.link+'" target="_blank"><img class="logo1" src="'+item.logo+'"/></a></li>';
-			social.innerHTML += li;
-		})
-		
-	}
-</script>
