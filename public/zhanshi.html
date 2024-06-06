@@ -5,69 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Filterable and Sortable Table</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #f4f4f4;
-        }
-        .container {
-            width: 80%;
-            margin: 20px auto;
-        }
-        .filter-container {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        .filter-container select, .filter-container input[type="text"] {
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        @media screen and (max-width: 600px) {
-            table, thead, tbody, th, td, tr {
-                display: block;
-            }
-            thead tr {
-                display: none;
-            }
-            tr {
-                margin-bottom: 15px;
-            }
-            td {
-                text-align: right;
-                padding-left: 50%;
-                position: relative;
-            }
-            td:before {
-                content: attr(data-label);
-                position: absolute;
-                left: 0;
-                width: 50%;
-                padding-left: 15px;
-                font-weight: bold;
-                text-align: left;
-            }
-        }
+        /* Add your CSS here */
     </style>
 </head>
 <body>
@@ -96,72 +34,121 @@
                     <th>Year</th>
                     <th>Category</th>
                     <th>Rating</th>
+                    <th>Link</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td data-label="Name">Book 1</td>
-                    <td data-label="Author">Author 1</td>
-                    <td data-label="Year">2020</td>
-                    <td data-label="Category">Fantasy</td>
-                    <td data-label="Rating">5</td>
-                </tr>
-                <tr>
-                    <td data-label="Name">Book 2</td>
-                    <td data-label="Author">Author 2</td>
-                    <td data-label="Year">2021</td>
-                    <td data-label="Category">History</td>
-                    <td data-label="Rating">4</td>
-                </tr>
-                <tr>
-                    <td data-label="Name">Book 3</td>
-                    <td data-label="Author">Author 3</td>
-                    <td data-label="Year">2022</td>
-                    <td data-label="Category">Fantasy</td>
-                    <td data-label="Rating">3</td>
-                </tr>
-                <tr>
-                    <td data-label="Name">Book 4</td>
-                    <td data-label="Author">Author 4</td>
-                    <td data-label="Year">2023</td>
-                    <td data-label="Category">History</td>
-                    <td data-label="Rating">2</td>
-                </tr>
-                <!-- Add more rows as needed -->
+                <!-- Rows will be populated by JavaScript -->
             </tbody>
         </table>
+        <form id="addBookForm">
+            <h3>Add a new book</h3>
+            <input type="text" id="bookName" placeholder="Book Name" required>
+            <input type="text" id="bookAuthor" placeholder="Author" required>
+            <input type="number" id="bookYear" placeholder="Year" required>
+            <input type="text" id="bookCategory" placeholder="Category" required>
+            <input type="number" id="bookRating" placeholder="Rating" required min="1" max="5">
+            <button type="submit">Add Book</button>
+        </form>
     </div>
 
     <script>
-        function filterTable() {
-            var nameInput, nameFilter, categorySelect, categoryFilter, ratingSelect, ratingFilter, table, tr, td, i, j, txtValue;
-            nameInput = document.getElementById("nameFilter");
-            nameFilter = nameInput.value.toUpperCase();
-            categorySelect = document.getElementById("categoryFilter");
-            categoryFilter = categorySelect.value.toUpperCase();
-            ratingSelect = document.getElementById("ratingFilter");
-            ratingFilter = ratingSelect.value;
-            table = document.getElementById("bookTable");
-            tr = table.getElementsByTagName("tr");
+        async function loadBooks() {
+            let months = ['2024-01', '2024-02']; // Add all month files here
+            let books = [];
 
-            for (i = 1; i < tr.length; i++) {
-                tr[i].style.display = "none";
-                td = tr[i].getElementsByTagName("td");
-                for (j = 0; j < td.length; j++) {
-                    if (td[j]) {
-                        txtValue = td[j].textContent || td[j].innerText;
-                        if (
-                            (td[0].innerText.toUpperCase().indexOf(nameFilter) > -1 || nameFilter === "") &&
-                            (td[3].innerText.toUpperCase().indexOf(categoryFilter) > -1 || categoryFilter === "") &&
-                            (td[4].innerText === ratingFilter || ratingFilter === "")
-                        ) {
-                            tr[i].style.display = "";
-                            break;
-                        }
+            for (let month of months) {
+                let response = await fetch(`/api/books/${month}`);
+                let text = await response.text();
+                let rows = text.split('\n').filter(row => row.trim() !== '');
+                for (let row of rows) {
+                    let columns = row.split(',');
+                    if (columns.length === 5) {
+                        books.push({
+                            name: columns[0],
+                            author: columns[1],
+                            year: columns[2],
+                            category: columns[3],
+                            rating: columns[4],
+                        });
                     }
                 }
             }
+
+            return books;
         }
+
+        function displayBooks(books) {
+            let tbody = document.querySelector('#bookTable tbody');
+            tbody.innerHTML = '';
+            let uniqueBooks = Array.from(new Set(books.map(b => JSON.stringify(b)))).map(b => JSON.parse(b));
+
+            for (let book of uniqueBooks) {
+                let row = document.createElement('tr');
+                row.innerHTML = `
+                    <td data-label="Name">${book.name}</td>
+                    <td data-label="Author">${book.author}</td>
+                    <td data-label="Year">${book.year}</td>
+                    <td data-label="Category">${book.category}</td>
+                    <td data-label="Rating">${book.rating}</td>
+                    <td data-label="Link"><a href="book.html?name=${encodeURIComponent(book.name)}">View</a></td>
+                `;
+                tbody.appendChild(row);
+            }
+        }
+
+        function filterTable() {
+            let nameFilter = document.getElementById('nameFilter').value.toUpperCase();
+            let categoryFilter = document.getElementById('categoryFilter').value.toUpperCase();
+            let ratingFilter = document.getElementById('ratingFilter').value;
+
+            let tbody = document.querySelector('#bookTable tbody');
+            let rows = tbody.getElementsByTagName('tr');
+
+            for (let row of rows) {
+                let cells = row.getElementsByTagName('td');
+                let name = cells[0].innerText.toUpperCase();
+                let category = cells[3].innerText.toUpperCase();
+                let rating = cells[4].innerText;
+
+                if ((name.indexOf(nameFilter) > -1 || nameFilter === '') &&
+                    (category.indexOf(categoryFilter) > -1 || categoryFilter === '') &&
+                    (rating === ratingFilter || ratingFilter === '')) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+
+        document.getElementById('addBookForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            let name = document.getElementById('bookName').value;
+            let author = document.getElementById('bookAuthor').value;
+            let year = document.getElementById('bookYear').value;
+            let category = document.getElementById('bookCategory').value;
+            let rating = document.getElementById('bookRating').value;
+
+            let newBook = {
+                name: name,
+                author: author,
+                year: year,
+                category: category,
+                rating: rating,
+            };
+            let response = await fetch(`/api/books/${new Date().toISOString().slice(0, 7)}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newBook),
+            });
+
+            if (response.ok) {
+                loadBooks().then(displayBooks);
+            }
+        });
+
+        loadBooks().then(displayBooks);
     </script>
 </body>
 </html>
