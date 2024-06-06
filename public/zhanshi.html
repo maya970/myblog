@@ -20,7 +20,8 @@
         }
         .filter-container {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+            gap: 10px;
             margin-bottom: 20px;
         }
         .filter-container select, .filter-container input[type="text"] {
@@ -44,6 +45,9 @@
             background-color: #f2f2f2;
         }
         @media screen and (max-width: 600px) {
+            .filter-container {
+                flex-direction: column;
+            }
             table, thead, tbody, th, td, tr {
                 display: block;
             }
@@ -67,6 +71,23 @@
                 font-weight: bold;
                 text-align: left;
             }
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .pagination button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        .pagination button.disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -106,9 +127,17 @@
                 <!-- Rows will be added dynamically here -->
             </tbody>
         </table>
+        <div class="pagination">
+            <button id="prevPage" onclick="changePage(-1)">Previous</button>
+            <button id="nextPage" onclick="changePage(1)">Next</button>
+        </div>
     </div>
 
     <script>
+        let currentPage = 1;
+        const rowsPerPage = 20;
+        let filteredBooks = [];
+
         async function fetchTextFiles(filePaths) {
             const fetchPromises = filePaths.map(path => fetch(path).then(response => response.text()));
             return Promise.all(fetchPromises);
@@ -150,7 +179,12 @@
         function populateTable(books) {
             const tbody = document.getElementById('bookTable').getElementsByTagName('tbody')[0];
             tbody.innerHTML = '';
-            books.forEach(book => {
+
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const paginatedBooks = books.slice(start, end);
+
+            paginatedBooks.forEach(book => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td data-label="Name">${book.name}</td>
@@ -162,6 +196,9 @@
                 `;
                 tbody.appendChild(tr);
             });
+
+            document.getElementById('prevPage').classList.toggle('disabled', currentPage === 1);
+            document.getElementById('nextPage').classList.toggle('disabled', end >= books.length);
         }
 
         function filterTable() {
@@ -169,29 +206,18 @@
             const categoryFilter = document.getElementById("categoryFilter").value.toUpperCase();
             const subCategoryFilter = document.getElementById("subCategoryFilter").value.toUpperCase();
             const ratingFilter = document.getElementById("ratingFilter").value;
-            const table = document.getElementById("bookTable");
-            const tr = table.getElementsByTagName("tr");
-
-            for (let i = 1; i < tr.length; i++) {
-                tr[i].style.display = "none";
-                const td = tr[i].getElementsByTagName("td");
-                for (let j = 0; j < td.length; j++) {
-                    if (td[j]) {
-                        const txtValue = td[j].textContent || td[j].innerText;
-                        const ratingValue = parseFloat(td[5].innerText);
-                        const ratingFilterValue = parseInt(ratingFilter);
-                        if (
-                            (td[0].innerText.toUpperCase().indexOf(nameInput) > -1 || nameInput === "") &&
-                            (td[3].innerText.toUpperCase().indexOf(categoryFilter) > -1 || categoryFilter === "") &&
-                            (td[4].innerText.toUpperCase().indexOf(subCategoryFilter) > -1 || subCategoryFilter === "") &&
-                            (ratingValue <= ratingFilterValue || ratingFilter === "")
-                        ) {
-                            tr[i].style.display = "";
-                            break;
-                        }
-                    }
-                }
-            }
+            filteredBooks = allBooks.filter(book => {
+                const ratingValue = parseFloat(book.rating);
+                const ratingFilterValue = parseInt(ratingFilter);
+                return (
+                    (book.name.toUpperCase().indexOf(nameInput) > -1 || nameInput === "") &&
+                    (book.category.toUpperCase().indexOf(categoryFilter) > -1 || categoryFilter === "") &&
+                    (book.subcategory.toUpperCase().indexOf(subCategoryFilter) > -1 || subCategoryFilter === "") &&
+                    (ratingValue <= ratingFilterValue || ratingFilter === "")
+                );
+            });
+            currentPage = 1;
+            populateTable(filteredBooks);
         }
 
         function loadSubCategories() {
@@ -207,14 +233,22 @@
                 subCategorySelect.innerHTML += '<option value="Ancient History">Ancient History</option>';
                 subCategorySelect.innerHTML += '<option value="Modern History">Modern History</option>';
             }
+            filterTable();
         }
 
+        function changePage(direction) {
+            currentPage += direction;
+            populateTable(filteredBooks);
+        }
+
+        let allBooks = [];
         async function init() {
             const filePaths = ['./txt/books1.txt', './txt/books2.txt', './txt/books3.txt']; // Add your file paths here
             const fileWeights = [10000, 1, 1]; // Adjust weights as needed
             const fileContents = await fetchTextFiles(filePaths);
-            const books = parseTextFiles(fileContents, fileWeights);
-            populateTable(books);
+            allBooks = parseTextFiles(fileContents, fileWeights);
+            filteredBooks = allBooks;
+            populateTable(allBooks);
         }
 
         init();
