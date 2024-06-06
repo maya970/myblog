@@ -2,38 +2,39 @@ const fs = require('fs');
 const path = require('path');
 
 export default function handler(req, res) {
-    const filePath = path.join(process.cwd(), 'public', 'books.txt');
+    const bookDir = path.join(process.cwd(), 'public', 'books');
 
     if (req.method === 'GET') {
-        fs.readFile(filePath, 'utf8', (err, data) => {
+        fs.readdir(bookDir, (err, files) => {
             if (err) {
-                res.status(500).json({ error: 'Error reading file' });
-            } else {
-                res.status(200).send(data);
-            }
-        });
-    } else if (req.method === 'POST') {
-        let newBook = `${req.body.name},${req.body.author},${req.body.year},${req.body.category},${req.body.rating}\n`;
-
-        fs.readFile(filePath, 'utf8', (err, data) => {
-            if (err && err.code !== 'ENOENT') {
-                res.status(500).json({ error: 'Error reading file' });
+                res.status(500).json({ error: 'Error reading directory' });
                 return;
             }
 
-            let books = data ? data.split('\n') : [];
-            if (!books.includes(newBook.trim())) {
-                books.push(newBook.trim());
-                fs.writeFile(filePath, books.join('\n'), 'utf8', (err) => {
-                    if (err) {
-                        res.status(500).json({ error: 'Error writing file' });
-                    } else {
-                        res.status(200).json({ message: 'Book added successfully' });
-                    }
+            let books = [];
+            let fileReadPromises = files.map(file => {
+                return new Promise((resolve, reject) => {
+                    fs.readFile(path.join(bookDir, file), 'utf8', (err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
                 });
-            } else {
-                res.status(400).json({ error: 'Book already exists' });
-            }
+            });
+
+            Promise.all(fileReadPromises)
+                .then(contents => {
+                    contents.forEach(content => {
+                        books = books.concat(content.split('\n').filter(row => row.trim() !== ''));
+                    });
+                    books = Array.from(new Set(books));
+                    res.status(200).send(books.join('\n'));
+                })
+                .catch(err => {
+                    res.status(500).json({ error: 'Error reading files' });
+                });
         });
     } else {
         res.status(405).json({ error: 'Method not allowed' });
