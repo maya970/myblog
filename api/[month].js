@@ -14,8 +14,10 @@ export default function handler(req, res) {
             }
         });
     } else if (req.method === 'POST') {
-        const newBook = `${req.body.name},${req.body.author},${req.body.year},${req.body.category},${req.body.rating}\n`;
-        fs.appendFile(filePath, newBook, err => {
+        let newBook = `${req.body.name},${req.body.author},${req.body.year},${req.body.category},${req.body.rating}\n`;
+
+        // Ensure file exists before appending
+        fs.appendFile(filePath, newBook, { flag: 'a' }, err => {
             if (err) {
                 res.status(500).json({ error: 'Error writing to file' });
             } else {
