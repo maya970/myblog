@@ -1,4 +1,4 @@
-Book 1,Author 1,2020,Fantasy,5
-Book 2,Author 2,2021,History,4
-Book 3,Author 3,2022,Fantasy,3
-Book 4,Author 4,2023,History,2
+Book 1,Author 1,2020,Fantasy,Epic Fantasy,4.5
+Book 2,Author 2,2021,History,Ancient History,3.8
+Book 3,Author 3,2022,Fantasy,Urban Fantasy,2.3
+Book 4,Author 4,2023,History,Modern History,1.7
