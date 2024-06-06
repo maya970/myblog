@@ -5,7 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Filterable and Sortable Table</title>
     <style>
-        /* Add your CSS here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+        }
+        .filter-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .filter-container select, .filter-container input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        @media screen and (max-width: 600px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead tr {
+                display: none;
+            }
+            tr {
+                margin-bottom: 15px;
+            }
+            td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+            }
+            td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0;
+                width: 50%;
+                padding-left: 15px;
+                font-weight: bold;
+                text-align: left;
+            }
+        }
     </style>
 </head>
 <body>
@@ -18,11 +80,11 @@
             </select>
             <select id="ratingFilter" onchange="filterTable()">
                 <option value="">All Ratings</option>
-                <option value="1">1 Star</option>
-                <option value="2">2 Stars</option>
-                <option value="3">3 Stars</option>
-                <option value="4">4 Stars</option>
-                <option value="5">5 Stars</option>
+                <option value="1">0-1 Stars</option>
+                <option value="2">0-2 Stars</option>
+                <option value="3">0-3 Stars</option>
+                <option value="4">0-4 Stars</option>
+                <option value="5">0-5 Stars</option>
             </select>
             <input type="text" id="nameFilter" onkeyup="filterTable()" placeholder="Search for names..">
         </div>
@@ -34,136 +96,86 @@
                     <th>Year</th>
                     <th>Category</th>
                     <th>Rating</th>
-                    <th>Comments</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Rows will be populated by JavaScript -->
+                <!-- Rows will be added dynamically here -->
             </tbody>
         </table>
-        <form id="addBookForm">
-            <h3>Add a new book</h3>
-            <input type="text" id="bookName" placeholder="Book Name" required>
-            <input type="text" id="bookAuthor" placeholder="Author" required>
-            <input type="number" id="bookYear" placeholder="Year" required>
-            <input type="text" id="bookCategory" placeholder="Category" required>
-            <input type="number" id="bookRating" placeholder="Rating" required min="1" max="5">
-            <button type="submit">Add Book</button>
-        </form>
     </div>
 
     <script>
-        async function loadBooks() {
-            let response = await fetch('/api/books');
-            let text = await response.text();
-            let rows = text.split('\n').filter(row => row.trim() !== '');
-            let books = [];
-
-            for (let row of rows) {
-                let columns = row.split(',');
-                if (columns.length === 5) {
-                    books.push({
-                        name: columns[0],
-                        author: columns[1],
-                        year: columns[2],
-                        category: columns[3],
-                        rating: columns[4],
-                    });
-                }
-            }
-
-            return books;
+        async function fetchTextFiles(filePaths) {
+            const fetchPromises = filePaths.map(path => fetch(path).then(response => response.text()));
+            return Promise.all(fetchPromises);
         }
 
-        function displayBooks(books) {
-            let tbody = document.querySelector('#bookTable tbody');
-            tbody.innerHTML = '';
-            let uniqueBooks = Array.from(new Set(books.map(b => JSON.stringify(b)))).map(b => JSON.parse(b));
+        function parseTextFiles(contents) {
+            const books = new Set(); // Use Set to avoid duplicates
+            contents.forEach(content => {
+                const lines = content.split('\n');
+                lines.forEach(line => {
+                    const [name, author, year, category, rating] = line.split(',');
+                    if (name && author && year && category && rating) {
+                        books.add(JSON.stringify({ name, author, year, category, rating })); // Add book to Set
+                    }
+                });
+            });
+            return Array.from(books).map(book => JSON.parse(book)); // Convert Set back to Array
+        }
 
-            for (let book of uniqueBooks) {
-                let row = document.createElement('tr');
-                row.innerHTML = `
+        function populateTable(books) {
+            const tbody = document.getElementById('bookTable').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = '';
+            books.forEach(book => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
                     <td data-label="Name">${book.name}</td>
                     <td data-label="Author">${book.author}</td>
                     <td data-label="Year">${book.year}</td>
                     <td data-label="Category">${book.category}</td>
                     <td data-label="Rating">${book.rating}</td>
-                    <td data-label="Comments"><button onclick="viewComments('${book.name}')">View Comments</button></td>
                 `;
-                tbody.appendChild(row);
-            }
+                tbody.appendChild(tr);
+            });
         }
 
         function filterTable() {
-            let nameFilter = document.getElementById('nameFilter').value.toUpperCase();
-            let categoryFilter = document.getElementById('categoryFilter').value.toUpperCase();
-            let ratingFilter = document.getElementById('ratingFilter').value;
+            const nameInput = document.getElementById("nameFilter").value.toUpperCase();
+            const categoryFilter = document.getElementById("categoryFilter").value.toUpperCase();
+            const ratingFilter = document.getElementById("ratingFilter").value;
+            const table = document.getElementById("bookTable");
+            const tr = table.getElementsByTagName("tr");
 
-            let tbody = document.querySelector('#bookTable tbody');
-            let rows = tbody.getElementsByTagName('tr');
-
-            for (let row of rows) {
-                let cells = row.getElementsByTagName('td');
-                let name = cells[0].innerText.toUpperCase();
-                let category = cells[3].innerText.toUpperCase();
-                let rating = cells[4].innerText;
-
-                if ((name.indexOf(nameFilter) > -1 || nameFilter === '') &&
-                    (category.indexOf(categoryFilter) > -1 || categoryFilter === '') &&
-                    (rating === ratingFilter || ratingFilter === '')) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
+            for (let i = 1; i < tr.length; i++) {
+                tr[i].style.display = "none";
+                const td = tr[i].getElementsByTagName("td");
+                for (let j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        const txtValue = td[j].textContent || td[j].innerText;
+                        const ratingValue = parseFloat(td[4].innerText);
+                        const ratingFilterValue = parseInt(ratingFilter);
+                        if (
+                            (td[0].innerText.toUpperCase().indexOf(nameInput) > -1 || nameInput === "") &&
+                            (td[3].innerText.toUpperCase().indexOf(categoryFilter) > -1 || categoryFilter === "") &&
+                            (ratingValue <= ratingFilterValue || ratingFilter === "")
+                        ) {
+                            tr[i].style.display = "";
+                            break;
+                        }
+                    }
                 }
             }
         }
 
-        async function viewComments(bookName) {
-            let response = await fetch('/api/comments', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ bookName }),
-            });
-            let comments = await response.text();
-            alert(comments);
+        async function init() {
+            const filePaths = ['./txt/books1.txt', './txt/books2.txt', './txt/books3.txt']; // Add your file paths here
+            const fileContents = await fetchTextFiles(filePaths);
+            const books = parseTextFiles(fileContents);
+            populateTable(books);
         }
 
-        document.getElementById('addBookForm').addEventListener('submit', async function (event) {
-            event.preventDefault();
-
-            let name = document.getElementById('bookName').value;
-            let author = document.getElementById('bookAuthor').value;
-            let year = document.getElementById('bookYear').value;
-            let category = document.getElementById('bookCategory').value;
-            let rating = document.getElementById('bookRating').value;
-
-            let newBook = {
-                name: name,
-                author: author,
-                year: year,
-                category: category,
-                rating: rating,
-            };
-
-            let response = await fetch('/api/books', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newBook),
-            });
-
-            if (response.ok) {
-                let books = await loadBooks();
-                displayBooks(books);
-            } else {
-                alert('Failed to add book');
-            }
-        });
-
-        // Load and display books on page load
-        document.addEventListener('DOMContentLoaded', async function () {
-            let books = await loadBooks();
-            displayBooks(books);
-        });
+        init();
     </script>
 </body>
 </html>
