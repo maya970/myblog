@@ -89,47 +89,73 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            margin: 0 5px;
+            cursor: pointer;
+            background-color: #f2f2f2;
+            border: 1px solid #ccc;
+        }
+        .tab.active {
+            background-color: #007bff;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="filter-container">
-            <select id="categoryFilter" onchange="filterTable(); loadSubCategories()">
-                <option value="">All Categories</option>
-                <option value="Fantasy">Fantasy</option>
-                <option value="History">History</option>
-            </select>
-            <select id="subCategoryFilter" onchange="filterTable()">
-                <option value="">All Subcategories</option>
-            </select>
-            <select id="ratingFilter" onchange="filterTable()">
-                <option value="">All Ratings</option>
-                <option value="1">0-1 Stars</option>
-                <option value="2">0-2 Stars</option>
-                <option value="3">0-3 Stars</option>
-                <option value="4">0-4 Stars</option>
-                <option value="5">0-5 Stars</option>
-            </select>
-            <input type="text" id="nameFilter" onkeyup="filterTable()" placeholder="Search for names..">
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('books')">Books</div>
+            <div class="tab" onclick="switchTab('authors')">Authors</div>
         </div>
-        <table id="bookTable">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Author</th>
-                    <th>Year</th>
-                    <th>Category</th>
-                    <th>Subcategory</th>
-                    <th>Rating</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Rows will be added dynamically here -->
-            </tbody>
-        </table>
-        <div class="pagination">
-            <button id="prevPage" onclick="changePage(-1)">Previous</button>
-            <button id="nextPage" onclick="changePage(1)">Next</button>
+        <div id="books" class="tab-content">
+            <div class="filter-container">
+                <select id="categoryFilter" onchange="filterTable(); loadSubCategories()">
+                    <option value="">All Categories</option>
+                    <option value="Fantasy">Fantasy</option>
+                    <option value="History">History</option>
+                </select>
+                <select id="subCategoryFilter" onchange="filterTable()">
+                    <option value="">All Subcategories</option>
+                </select>
+                <select id="ratingFilter" onchange="filterTable()">
+                    <option value="">All Ratings</option>
+                    <option value="5">4-5 Stars</option>
+                    <option value="4">3-4 Stars</option>
+                    <option value="3">2-3 Stars</option>
+                    <option value="2">1-2 Stars</option>
+                    <option value="1">0-1 Stars</option>
+                </select>
+                <input type="text" id="nameFilter" onkeyup="filterTable()" placeholder="Search for names..">
+            </div>
+            <table id="bookTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Author</th>
+                        <th>Year</th>
+                        <th>Category</th>
+                        <th>Subcategory</th>
+                        <th>Rating</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be added dynamically here -->
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button id="prevPage" onclick="changePage(-1)">Previous</button>
+                <button id="nextPage" onclick="changePage(1)">Next</button>
+            </div>
+        </div>
+        <div id="authors" class="tab-content" style="display:none;">
+            <!-- Author related content goes here -->
+            <p>This is the Authors tab content.</p>
         </div>
     </div>
 
@@ -213,7 +239,7 @@
                     (book.name.toUpperCase().indexOf(nameInput) > -1 || nameInput === "") &&
                     (book.category.toUpperCase().indexOf(categoryFilter) > -1 || categoryFilter === "") &&
                     (book.subcategory.toUpperCase().indexOf(subCategoryFilter) > -1 || subCategoryFilter === "") &&
-                    (ratingValue <= ratingFilterValue || ratingFilter === "")
+                    (ratingValue >= ratingFilterValue || ratingFilter === "")
                 );
             });
             currentPage = 1;
@@ -239,6 +265,16 @@
         function changePage(direction) {
             currentPage += direction;
             populateTable(filteredBooks);
+        }
+
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.style.display = 'none');
+            document.getElementById(tabName).style.display = 'block';
         }
 
         let allBooks = [];
