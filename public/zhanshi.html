@@ -137,6 +137,7 @@
                 category: category,
                 rating: rating,
             };
+
             let response = await fetch(`/api/books/${new Date().toISOString().slice(0, 7)}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -144,11 +145,18 @@
             });
 
             if (response.ok) {
-                loadBooks().then(displayBooks);
+                let books = await loadBooks();
+                displayBooks(books);
+            } else {
+                alert('Failed to add book');
             }
         });
 
-        loadBooks().then(displayBooks);
+        // Load and display books on page load
+        document.addEventListener('DOMContentLoaded', async function () {
+            let books = await loadBooks();
+            displayBooks(books);
+        });
     </script>
 </body>
 </html>
