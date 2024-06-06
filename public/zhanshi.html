@@ -3,29 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Filterable Table</title>
+    <title>Filterable and Sortable Table</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
             background-color: #f4f4f4;
         }
         .container {
             width: 80%;
-            margin: auto;
-            overflow: hidden;
+            margin: 20px auto;
         }
-        input[type="text"] {
-            width: 100%;
-            padding: 12px 20px;
-            margin: 8px 0;
-            box-sizing: border-box;
-            border: 2px solid #ccc;
+        .filter-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .filter-container select, .filter-container input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
             border-radius: 4px;
         }
         table {
@@ -71,13 +72,30 @@
 </head>
 <body>
     <div class="container">
-        <input type="text" id="filterInput" onkeyup="filterTable()" placeholder="Search for names..">
+        <div class="filter-container">
+            <select id="categoryFilter" onchange="filterTable()">
+                <option value="">All Categories</option>
+                <option value="Fantasy">Fantasy</option>
+                <option value="History">History</option>
+            </select>
+            <select id="ratingFilter" onchange="filterTable()">
+                <option value="">All Ratings</option>
+                <option value="1">1 Star</option>
+                <option value="2">2 Stars</option>
+                <option value="3">3 Stars</option>
+                <option value="4">4 Stars</option>
+                <option value="5">5 Stars</option>
+            </select>
+            <input type="text" id="nameFilter" onkeyup="filterTable()" placeholder="Search for names..">
+        </div>
         <table id="bookTable">
             <thead>
                 <tr>
                     <th>Name</th>
                     <th>Author</th>
                     <th>Year</th>
+                    <th>Category</th>
+                    <th>Rating</th>
                 </tr>
             </thead>
             <tbody>
@@ -85,21 +103,29 @@
                     <td data-label="Name">Book 1</td>
                     <td data-label="Author">Author 1</td>
                     <td data-label="Year">2020</td>
+                    <td data-label="Category">Fantasy</td>
+                    <td data-label="Rating">5</td>
                 </tr>
                 <tr>
                     <td data-label="Name">Book 2</td>
                     <td data-label="Author">Author 2</td>
                     <td data-label="Year">2021</td>
+                    <td data-label="Category">History</td>
+                    <td data-label="Rating">4</td>
                 </tr>
                 <tr>
                     <td data-label="Name">Book 3</td>
                     <td data-label="Author">Author 3</td>
                     <td data-label="Year">2022</td>
+                    <td data-label="Category">Fantasy</td>
+                    <td data-label="Rating">3</td>
                 </tr>
                 <tr>
                     <td data-label="Name">Book 4</td>
                     <td data-label="Author">Author 4</td>
                     <td data-label="Year">2023</td>
+                    <td data-label="Category">History</td>
+                    <td data-label="Rating">2</td>
                 </tr>
                 <!-- Add more rows as needed -->
             </tbody>
@@ -108,18 +134,27 @@
 
     <script>
         function filterTable() {
-            var input, filter, table, tr, td, i, j, txtValue;
-            input = document.getElementById("filterInput");
-            filter = input.value.toUpperCase();
+            var nameInput, nameFilter, categorySelect, categoryFilter, ratingSelect, ratingFilter, table, tr, td, i, j, txtValue;
+            nameInput = document.getElementById("nameFilter");
+            nameFilter = nameInput.value.toUpperCase();
+            categorySelect = document.getElementById("categoryFilter");
+            categoryFilter = categorySelect.value.toUpperCase();
+            ratingSelect = document.getElementById("ratingFilter");
+            ratingFilter = ratingSelect.value;
             table = document.getElementById("bookTable");
             tr = table.getElementsByTagName("tr");
+
             for (i = 1; i < tr.length; i++) {
                 tr[i].style.display = "none";
                 td = tr[i].getElementsByTagName("td");
                 for (j = 0; j < td.length; j++) {
                     if (td[j]) {
                         txtValue = td[j].textContent || td[j].innerText;
-                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        if (
+                            (td[0].innerText.toUpperCase().indexOf(nameFilter) > -1 || nameFilter === "") &&
+                            (td[3].innerText.toUpperCase().indexOf(categoryFilter) > -1 || categoryFilter === "") &&
+                            (td[4].innerText === ratingFilter || ratingFilter === "")
+                        ) {
                             tr[i].style.display = "";
                             break;
                         }
