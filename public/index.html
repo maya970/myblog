@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>黑暗轻小说-在黑暗之中收集光明</title>
- <style>
+    <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -105,7 +105,6 @@
             background-color: #007bff;
             color: white;
         }
-
     </style>
 </head>
 <body>
@@ -171,9 +170,7 @@
         let bookLinks = {};
 
         async function fetchTextFiles(filePaths) {
-            const fetchPromises = filePaths.map(path => 
-                fetch(`${path}?t=${new Date().getTime()}`, { cache: 'no-store' }).then(response => response.text())
-            );
+            const fetchPromises = filePaths.map(path => fetch(path).then(response => response.text()));
             return Promise.all(fetchPromises);
         }
 
@@ -337,27 +334,23 @@
             populateTable(filteredBooks);
         }
 
-        function switchTab(tabName) {
-            const tabContents = document.getElementsByClassName("tab-content");
-            for (let i = 0; i < tabContents.length; i++) {
-                tabContents[i].style.display = "none";
-            }
-            document.getElementById(tabName).style.display = "block";
-
-            const tabs = document.getElementsByClassName("tab");
-            for (let i = 0; i < tabs.length; i++) {
-                tabs[i].classList.remove("active");
-            }
-            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add("active");
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tabContent => {
+                tabContent.style.display = tabContent.id === tabId ? 'block' : 'none';
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.toggle('active', tab.innerText === (tabId === 'books' ? '图书' : '网站'));
+            });
         }
 
         async function loadBooks() {
+            const filePaths = ['./txt/books1.txt', './txt/books2.txt', books3FilePath];
+            const weights = [0.4, 0.4, 0.2];
+
             try {
-                const [books3Content] = await fetchTextFiles([books3FilePath]);
-                const contents = [books3Content];
-                const weights = [1];
+                const contents = await fetchTextFiles(filePaths);
                 allBooks = parseTextFiles(contents, weights);
-                filteredBooks = allBooks;
+                filteredBooks = [...allBooks];
                 populateTable(filteredBooks);
             } catch (error) {
                 console.error('Error loading books:', error);
@@ -366,15 +359,14 @@
 
         async function loadBookLinks() {
             try {
-                const bookLinksContent = await fetch(`${bookLinksFilePath}?t=${new Date().getTime()}`, { cache: 'no-store' }).then(response => response.text());
-                const lines = bookLinksContent.split('\n');
-                lines.forEach(line => {
+                const response = await fetch(bookLinksFilePath);
+                const text = await response.text();
+                text.split('\n').forEach(line => {
                     const [name, link] = line.split(',');
                     if (name && link) {
                         bookLinks[name] = link;
                     }
                 });
-                console.log('Book links loaded:', bookLinks);  // 添加调试日志
             } catch (error) {
                 console.error('Error loading book links:', error);
             }
@@ -383,7 +375,6 @@
         window.onload = async () => {
             await loadBookLinks();
             await loadBooks();
-            console.log('Books loaded:', allBooks);  // 添加调试日志
         };
     </script>
 </body>
