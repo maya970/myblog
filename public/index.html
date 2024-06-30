@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黑暗轻小说-在黑暗之中收集光明</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+        }
+        .filter-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .filter-container select, .filter-container input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        @media screen and (max-width: 600px) {
+            .filter-container {
+                flex-direction: column;
+            }
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead tr {
+                display: none;
+            }
+            tr {
+                margin-bottom: 15px;
+            }
+            td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+            }
+            td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0;
+                width: 50%;
+                padding-left: 15px;
+                font-weight: bold;
+                text-align: left;
+            }
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .pagination button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        .pagination button.disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            margin: 0 5px;
+            cursor: pointer;
+            background-color: #f2f2f2;
+            border: 1px solid #ccc;
+        }
+        .tab.active {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('books')">图书</div>
+            <div class="tab" onclick="switchTab('authors')">网站</div>
+        </div>
+        <div id="books" class="tab-content">
+            <div class="filter-container">
+                <select id="categoryFilter" onchange="filterTable(); loadSubCategories()">
+                    <option value="">所有类别</option>
+                    <option value="同人奇幻">同人奇幻</option>
+                    <option value="国内历史">国内历史</option>
+                    <option value="外国历史">外国历史</option>
+                </select>
+                <select id="subCategoryFilter" onchange="filterTable()">
+                    <option value="">所有子类别</option>
+                </select>
+                <select id="ratingFilter" onchange="filterTable()">
+                    <option value="">所有评分</option>
+                    <option value="5">4-5 星</option>
+                    <option value="4">3-4 星</option>
+                    <option value="3">2-3 星</option>
+                    <option value="2">1-2 星</option>
+                    <option value="1">0-1 星</option>
+                </select>
+                <input type="text" id="nameFilter" onkeyup="filterTable()" placeholder="搜索书名..">
+            </div>
+            <table id="bookTable">
+                <thead>
+                    <tr>
+                        <th>书名</th>
+                        <th>网站</th>
+                        <th>提交者</th>
+                        <th>类别</th>
+                        <th>子类别</th>
+                        <th>评分</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be added dynamically here -->
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button id="prevPage" onclick="changePage(-1)">上一页</button>
+                <button id="nextPage" onclick="changePage(1)">下一页</button>
+            </div>
+        </div>
+        <div id="authors" class="tab-content" style="display:none;">
+            <!-- Author related content goes here -->
+            <p>这是作者标签的内容。</p>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const rowsPerPage = 20;
+        let filteredBooks = [];
+        let allBooks = [];
+        const books3FilePath = './txt/books3.txt';
+        const bookLinksFilePath = './txt/bookLinks.txt';
+        let bookLinks = {};
+
+        async function fetchTextFiles(filePaths) {
+            const fetchPromises = filePaths.map(path => fetch(path).then(response => response.text()));
+            return Promise.all(fetchPromises);
+        }
+
+        function parseTextFiles(contents, weights) {
+            const bookMap = new Map();
+            
+            contents.forEach((content, index) => {
+                const lines = content.split('\n');
+                const weight = weights[index];
+                lines.forEach(line => {
+                    const [name, author, year, category, subcategory, rating] = line.split(',');
+                    if (name && author && year && category && subcategory && rating) {
+                        const bookKey = name.toLowerCase(); // use lowercase for case-insensitive comparison
+                        const currentRating = parseFloat(rating);
+
+                        if (bookMap.has(bookKey)) {
+                            const bookData = bookMap.get(bookKey);
+                            bookData.totalWeight += weight;
+                            bookData.weightedSum += currentRating * weight;
+                        } else {
+                            bookMap.set(bookKey, {
+                                name, author, year, category, subcategory,
+                                totalWeight: weight,
+                                weightedSum: currentRating * weight
+                            });
+                        }
+                    }
+                });
+            });
+
+            return Array.from(bookMap.values()).map(book => ({
+                ...book,
+                rating: (book.weightedSum / book.totalWeight).toFixed(2)
+            }));
+        }
+
+        function populateTable(books) {
+            const tbody = document.getElementById('bookTable').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = '';
+
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const paginatedBooks = books.slice(start, end);
+
+            paginatedBooks.forEach(book => {
+                const tr = document.createElement('tr');
+                const bookLink = bookLinks[book.name] || `https://www.yousuu.com/search/?search_type=title&search_value=${encodeURIComponent(book.name)}&from=search`;
+                tr.innerHTML = `
+                    <td data-label="书名"><a href="${bookLink}" target="_blank">${book.name}</a></td>
+                    <td data-label="网站">${book.author}</td>
+                    <td data-label="提交者">${book.year}</td>
+                    <td data-label="类别">${book.category}</td>
+                    <td data-label="子类别">${book.subcategory}</td>
+                    <td data-label="评分">${book.rating}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('prevPage').classList.toggle('disabled', currentPage === 1);
+            document.getElementById('nextPage').classList.toggle('disabled', end >= books.length);
+        }
+
+        function filterTable() {
+            const nameInput = document.getElementById("nameFilter").value.toUpperCase();
+            const categoryFilter = document.getElementById("categoryFilter").value.toUpperCase();
+            const subCategoryFilter = document.getElementById("subCategoryFilter").value.toUpperCase();
+            const ratingFilter = document.getElementById("ratingFilter").value;
+            filteredBooks = allBooks.filter(book => {
+                const ratingValue = parseFloat(book.rating);
+                const ratingFilterValue = parseInt(ratingFilter);
+                return (
+                    (book.name.toUpperCase().indexOf(nameInput) > -1 || nameInput === "") &&
+                    (book.category.toUpperCase().indexOf(categoryFilter) > -1 || categoryFilter === "") &&
+                    (book.subcategory.toUpperCase().indexOf(subCategoryFilter) > -1 || subCategoryFilter === "") &&
+                    (ratingValue >= ratingFilterValue || ratingFilter === "")
+                );
+            });
+            currentPage = 1;
+            populateTable(filteredBooks);
+        }
+
+        function loadSubCategories() {
+            const category = document.getElementById("categoryFilter").value;
+            const subCategorySelect = document.getElementById("subCategoryFilter");
+            subCategorySelect.innerHTML = '<option value="">所有子类别</option>';
+            if (category === "同人奇幻") {
+                subCategorySelect.innerHTML += '<option value="西方">西方</option><option value="中世纪">中世纪</option><option value="魔法">魔法</option>';
+            } else if (category === "国内历史") {
+                subCategorySelect.innerHTML += '<option value="明清">明清</option><option value="民国">民国</option>';
+            } else if (category === "外国历史") {
+                subCategorySelect.innerHTML += '<option value="欧洲">欧洲</option><option value="亚洲">亚洲</option>';
+            }
+        }
+
+        function changePage(direction) {
+            currentPage += direction;
+            populateTable(filteredBooks);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tabContent => {
+                tabContent.style.display = tabContent.id === tabId ? 'block' : 'none';
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.toggle('active', tab.innerText === (tabId === 'books' ? '图书' : '网站'));
+            });
+        }
+
+        async function loadBooks() {
+            const filePaths = ['./txt/books1.txt', './txt/books2.txt', books3FilePath];
+            const weights = [0.4, 0.4, 0.2];
+
+            try {
+                const contents = await fetchTextFiles(filePaths);
+                allBooks = parseTextFiles(contents, weights);
+                filteredBooks = [...allBooks];
+                populateTable(filteredBooks);
+            } catch (error) {
+                console.error('Error loading books:', error);
+            }
+        }
+
+        async function loadBookLinks() {
+            try {
+                const response = await fetch(bookLinksFilePath);
+                const text = await response.text();
+                text.split('\n').forEach(line => {
+                    const [name, link] = line.split(',');
+                    if (name && link) {
+                        bookLinks[name] = link;
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading book links:', error);
+            }
+        }
+
+        window.onload = async () => {
+            await loadBookLinks();
+            await loadBooks();
+        };
+    </script>
+</body>
+</html>
