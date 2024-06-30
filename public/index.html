@@ -105,6 +105,7 @@
             background-color: #007bff;
             color: white;
         }
+
     </style>
 </head>
 <body>
@@ -373,6 +374,7 @@
                         bookLinks[name] = link;
                     }
                 });
+                console.log('Book links loaded:', bookLinks);  // 添加调试日志
             } catch (error) {
                 console.error('Error loading book links:', error);
             }
@@ -381,6 +383,7 @@
         window.onload = async () => {
             await loadBookLinks();
             await loadBooks();
+            console.log('Books loaded:', allBooks);  // 添加调试日志
         };
     </script>
 </body>
