@@ -2,7 +2,7 @@ let currentPage = 1;
 const rowsPerPage = 20;
 let filteredBooks = [];
 let allBooks = [];
-const books3FilePath = './txt/books1.txt';
+const books3FilePath = './txt/books3.txt';
 const bookLinksFilePath = './txt/bookLinks.txt';
 let bookLinks = {};
 
@@ -13,7 +13,7 @@ async function fetchTextFiles(filePaths) {
 
 function parseTextFiles(contents, weights) {
     const bookMap = new Map();
-    
+
     contents.forEach((content, index) => {
         const lines = content.split('\n');
         const weight = weights[index];
@@ -176,11 +176,11 @@ function loadSubCategories() {
 }
 
 async function init() {
-    const [books3Content, bookLinksContent] = await fetchTextFiles([books3FilePath, bookLinksFilePath]);
+    const filePaths = ['./txt/books1.txt', './txt/books2.txt', books3FilePath];
+    const [books1Content, books2Content, books3Content, bookLinksContent] = await fetchTextFiles([...filePaths, bookLinksFilePath]);
 
-    
-    const weights = [0.4, 0.4, 0.2];
-    allBooks = parseTextFiles([books3Content], weights);
+    const weights = [0.4, 0.2, 0.2];
+    allBooks = parseTextFiles([books1Content, books2Content, books3Content], weights);
 
     bookLinksContent.split('\n').forEach(line => {
         const [name, link] = line.split(':');
