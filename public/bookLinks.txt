@@ -1,2 +1,0 @@
-书名1,https://example.com/link1
-书名2,https://example.com/link2
