@@ -1,68 +1,59 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>黑暗轻小说-在黑暗之中收集光明</title>
+    <title>书籍筛选</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <h1>黑暗轻小说</h1>
-            <p>在黑暗之中收集光明</p>
-        </header>
-        <div class="tab-container">
-            <div class="tab active" onclick="switchTab('books')">图书</div>
-            <div class="tab" onclick="switchTab('authors')">网站</div>
+        <h1>书籍筛选</h1>
+        <div class="filters">
+            <label for="categoryFilter">类别：</label>
+            <select id="categoryFilter">
+                <option value="">所有类别</option>
+                <option value="同人奇幻">同人奇幻</option>
+                <option value="国内历史">国内历史</option>
+                <option value="外国历史">外国历史</option>
+            </select>
+            <label for="subCategoryFilter">子类别：</label>
+            <select id="subCategoryFilter">
+                <option value="">所有子类别</option>
+            </select>
+            <label for="ratingFilter">评分：</label>
+            <select id="ratingFilter">
+                <option value="">所有评分</option>
+                <option value="9">9分以上</option>
+                <option value="8">8-9分</option>
+                <option value="7">7-8分</option>
+                <option value="6">6-7分</option>
+                <option value="5">5-6分</option>
+                <option value="4">4-5分</option>
+                <option value="3">3-4分</option>
+                <option value="2">2-3分</option>
+                <option value="1">1-2分</option>
+                <option value="0">0-1分</option>
+            </select>
+            <label for="nameFilter">书名：</label>
+            <input type="text" id="nameFilter" placeholder="输入书名">
         </div>
-        <div class="editor-recommendation">
-            <h2>编辑推荐</h2>
-            <p>敬请期待...</p>
-        </div>
-        <div id="books" class="tab-content">
-            <div class="filter-container">
-                <select id="categoryFilter" onchange="filterTable(); loadSubCategories()">
-                    <option value="">所有类别</option>
-                    <option value="同人奇幻">同人奇幻</option>
-                    <option value="国内历史">国内历史</option>
-                    <option value="外国历史">外国历史</option>
-                </select>
-                <select id="subCategoryFilter" onchange="filterTable()">
-                    <option value="">所有子类别</option>
-                </select>
-                <select id="ratingFilter" onchange="filterTable()">
-                    <option value="">所有评分</option>
-                    <option value="5">4-5 星</option>
-                    <option value="4">3-4 星</option>
-                    <option value="3">2-3 星</option>
-                    <option value="2">1-2 星</option>
-                    <option value="1">0-1 星</option>
-                </select>
-                <input type="text" id="nameFilter" onkeyup="filterTable()" placeholder="搜索书名..">
-            </div>
-            <table id="bookTable">
-                <thead>
-                    <tr>
-                        <th>书名</th>
-                        <th>网站</th>
-                        <th>提交者</th>
-                        <th>类别</th>
-                        <th>子类别</th>
-                        <th>评分</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Rows will be added dynamically here -->
-                </tbody>
-            </table>
-            <div class="pagination">
-                <button id="prevPage" onclick="changePage(-1)">上一页</button>
-                <button id="nextPage" onclick="changePage(1)">下一页</button>
-            </div>
-        </div>
-        <div id="authors" class="tab-content" style="display:none;">
-            <p>这是作者标签的内容。</p>
+        <table id="bookTable">
+            <thead>
+                <tr>
+                    <th>书名</th>
+                    <th>作者</th>
+                    <th>年份</th>
+                    <th>类别</th>
+                    <th>子类别</th>
+                    <th>评分</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div class="pagination">
+            <button id="prevPage">上一页</button>
+            <button id="nextPage">下一页</button>
         </div>
     </div>
     <script src="script.js"></script>
