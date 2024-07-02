@@ -175,6 +175,26 @@ function loadSubCategories() {
     filterTable();
 }
 
+function switchTab(tabName) {
+const tabs = document.querySelectorAll('.tab');
+const tabContents = document.querySelectorAll('.tab-content');
+tabs.forEach(tab => {
+    if (tab.id === tabName) {
+        tab.classList.add('active');
+    } else {
+        tab.classList.remove('active');
+    }
+});
+    tabContents.forEach(content => {
+    if (content.id === tabName) {
+        content.style.display = 'block';
+    } else {
+        content.style.display = 'none';
+    }
+});
+}
+    
+
 async function init() {
     const filePaths = ['./txt/books1.txt', './txt/books2.txt', books3FilePath];
     const [books1Content, books2Content, books3Content, bookLinksContent] = await fetchTextFiles([...filePaths, bookLinksFilePath]);
