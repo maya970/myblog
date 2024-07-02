@@ -54,6 +54,7 @@ function populateTable(books) {
 
     paginatedBooks.forEach(book => {
         const tr = document.createElement('tr');
+        // 检查 bookLinks 中是否存在对应书名的链接
         const bookLink = bookLinks[book.name] || `https://www.yousuu.com/search/?search_type=title&search_value=${encodeURIComponent(book.name)}&from=search`;
         tr.innerHTML = `
             <td data-label="书名"><a href="${bookLink}" target="_blank">${book.name}</a></td>
