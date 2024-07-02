@@ -6,10 +6,27 @@ const books3FilePath = './txt/books3.txt';
 const bookLinksFilePath = './txt/bookLinks.txt';
 let bookLinks = {};
 
+const bookLinks = {};
+
+async function loadBookLinks() {
+    const response = await fetch('path/to/bookLinks.txt');
+    const data = await response.text();
+    const lines = data.split('\n');
+
+    lines.forEach(line => {
+        const [name, link] = line.split(',');
+        if (name && link) {
+            bookLinks[name.trim()] = link.trim();
+        }
+    });
+}
+
 async function fetchTextFiles(filePaths) {
     const fetchPromises = filePaths.map(path => fetch(path).then(response => response.text()));
     return Promise.all(fetchPromises);
 }
+
+
 
 function parseTextFiles(contents, weights) {
     const bookMap = new Map();
@@ -54,7 +71,6 @@ function populateTable(books) {
 
     paginatedBooks.forEach(book => {
         const tr = document.createElement('tr');
-        // 检查 bookLinks 中是否存在对应书名的链接
         const bookLink = bookLinks[book.name] || `https://www.yousuu.com/search/?search_type=title&search_value=${encodeURIComponent(book.name)}&from=search`;
         tr.innerHTML = `
             <td data-label="书名"><a href="${bookLink}" target="_blank">${book.name}</a></td>
@@ -70,6 +86,7 @@ function populateTable(books) {
     document.getElementById('prevPage').disabled = currentPage === 1;
     document.getElementById('nextPage').disabled = end >= books.length;
 }
+
 
 function filterTable() {
     const categoryFilter = document.getElementById('categoryFilter').value.toLowerCase();
@@ -222,3 +239,8 @@ document.getElementById('ratingFilter').addEventListener('change', filterTable);
 document.getElementById('nameFilter').addEventListener('input', filterTable);
 document.getElementById('prevPage').addEventListener('click', () => changePage(-1));
 document.getElementById('nextPage').addEventListener('click', () => changePage(1));
+document.addEventListener('DOMContentLoaded', () => {
+    loadBookLinks().then(() => {
+        // 初始化表格或其他操作
+    });
+});
