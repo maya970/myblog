@@ -2,7 +2,7 @@ let currentPage = 1;
 const rowsPerPage = 20;
 let filteredBooks = [];
 let allBooks = [];
-const books3FilePath = './txt/books3.txt';
+const books3FilePath = './txt/books1.txt';
 const bookLinksFilePath = './txt/bookLinks.txt';
 let bookLinks = {};
 
@@ -177,6 +177,7 @@ function loadSubCategories() {
 
 async function init() {
     const [books3Content, bookLinksContent] = await fetchTextFiles([books3FilePath, bookLinksFilePath]);
+
     
     const weights = [0.4, 0.4, 0.2];
     allBooks = parseTextFiles([books3Content], weights);
