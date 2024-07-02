@@ -95,24 +95,91 @@ function changePage(delta) {
 }
 
 function loadSubCategories() {
-    const categoryFilter = document.getElementById('categoryFilter').value.toLowerCase();
-    const subCategoryFilter = document.getElementById('subCategoryFilter');
+    const categoryFilter = document.getElementById('categoryFilter').value;
+    const subCategorySelect = document.getElementById('subCategoryFilter');
 
-    const uniqueSubCategories = new Set(allBooks.filter(book => book.category.toLowerCase().includes(categoryFilter)).map(book => book.subcategory));
-    subCategoryFilter.innerHTML = '<option value="">所有子类别</option>';
-    uniqueSubCategories.forEach(subCategory => {
-        const option = document.createElement('option');
-        option.value = subCategory;
-        option.textContent = subCategory;
-        subCategoryFilter.appendChild(option);
-    });
+    subCategorySelect.innerHTML = '<option value="">所有子类别</option>';
+
+    if (categoryFilter === "同人奇幻") {
+        subCategorySelect.innerHTML += '<option value="中土世界">中土世界</option>';
+        subCategorySelect.innerHTML += '<option value="权力游戏">权力游戏</option>';
+        subCategorySelect.innerHTML += '<option value="魔兽争霸">魔兽争霸</option>';
+        subCategorySelect.innerHTML += '<option value="同人种田">同人种田</option>';
+        subCategorySelect.innerHTML += '<option value="第四天灾">第四天灾</option>';
+        subCategorySelect.innerHTML += '<option value="奇幻种田">奇幻种田</option>';
+    } else if (categoryFilter === "国内历史") {
+        subCategorySelect.innerHTML += '<option value="上古历史">上古历史</option>';
+        subCategorySelect.innerHTML += '<option value="先秦历史">先秦历史</option>';
+        subCategorySelect.innerHTML += '<option value="秦汉三国">秦汉三国</option>';
+        subCategorySelect.innerHTML += '<option value="魏晋南北">魏晋南北</option>';
+        subCategorySelect.innerHTML += '<option value="隋唐五代">隋唐五代</option>';
+        subCategorySelect.innerHTML += '<option value="宋元风月">宋元风月</option>';
+        subCategorySelect.innerHTML += '<option value="大明王朝">大明王朝</option>';
+        subCategorySelect.innerHTML += '<option value="清朝以后">清朝以后</option>';
+    } else if (categoryFilter === "外国历史") {
+        subCategorySelect.innerHTML += '<option value="罗马/西罗马帝国">罗马/西罗马帝国</option>';
+        subCategorySelect.innerHTML += '<option value="东罗马">东罗马</option>';
+        subCategorySelect.innerHTML += '<option value="奥地利帝国/奥匈帝国/哈布斯堡王朝">奥地利帝国/奥匈帝国/哈布斯堡王朝</option>';
+        subCategorySelect.innerHTML += '<option value="北海帝国">北海帝国</option>';
+        subCategorySelect.innerHTML += '<option value="希腊（近代以前）">希腊（近代以前）</option>';
+        subCategorySelect.innerHTML += '<option value="葡萄牙">葡萄牙</option>';
+        subCategorySelect.innerHTML += '<option value="西班牙">西班牙</option>';
+        subCategorySelect.innerHTML += '<option value="法国">法国</option>';
+        subCategorySelect.innerHTML += '<option value="游牧">游牧</option>';
+        subCategorySelect.innerHTML += '<option value="玛雅">玛雅</option>';
+        subCategorySelect.innerHTML += '<option value="美国">美国</option>';
+        subCategorySelect.innerHTML += '<option value="低地">低地</option>';
+        subCategorySelect.innerHTML += '<option value="斯堪纳">斯堪纳</option>';
+        subCategorySelect.innerHTML += '<option value="意大利">意大利</option>';
+        subCategorySelect.innerHTML += '<option value="苏联">苏联</option>';
+        subCategorySelect.innerHTML += '<option value="波兰">波兰</option>';
+        subCategorySelect.innerHTML += '<option value="爱尔兰">爱尔兰</option>';
+        subCategorySelect.innerHTML += '<option value="乌克兰">乌克兰</option>';
+        subCategorySelect.innerHTML += '<option value="匈牙利">匈牙利</option>';
+        subCategorySelect.innerHTML += '<option value="条顿骑士团国">条顿骑士团国</option>';
+        subCategorySelect.innerHTML += '<option value="冰岛">冰岛</option>';
+        subCategorySelect.innerHTML += '<option value="巴尔干">巴尔干</option>';
+        subCategorySelect.innerHTML += '<option value="教皇国">教皇国</option>';
+        subCategorySelect.innerHTML += '<option value="两西西里">两西西里</option>';
+        subCategorySelect.innerHTML += '<option value="捷克斯洛伐克">捷克斯洛伐克</option>';
+        subCategorySelect.innerHTML += '<option value="越南">越南</option>';
+        subCategorySelect.innerHTML += '<option value="耶路撒冷王国">耶路撒冷王国</option>';
+        subCategorySelect.innerHTML += '<option value="伊拉克">伊拉克</option>';
+        subCategorySelect.innerHTML += '<option value="波斯">波斯</option>';
+        subCategorySelect.innerHTML += '<option value="巴基斯坦">巴基斯坦</option>';
+        subCategorySelect.innerHTML += '<option value="奥斯曼帝国">奥斯曼帝国</option>';
+        subCategorySelect.innerHTML += '<option value="古巴比伦">古巴比伦</option>';
+        subCategorySelect.innerHTML += '<option value="泰国">泰国</option>';
+        subCategorySelect.innerHTML += '<option value="缅甸">缅甸</option>';
+        subCategorySelect.innerHTML += '<option value="柬埔寨">柬埔寨</option>';
+        subCategorySelect.innerHTML += '<option value="英国">英国</option>';
+        subCategorySelect.innerHTML += '<option value="朝鲜">朝鲜</option>';
+        subCategorySelect.innerHTML += '<option value="以色列（现代）">以色列（现代）</option>';
+        subCategorySelect.innerHTML += '<option value="德国">德国</option>';
+        subCategorySelect.innerHTML += '<option value="澳大利亚">澳大利亚</option>';
+        subCategorySelect.innerHTML += '<option value="埃及">埃及</option>';
+        subCategorySelect.innerHTML += '<option value="利比亚">利比亚</option>';
+        subCategorySelect.innerHTML += '<option value="莫桑比克">莫桑比克</option>';
+        subCategorySelect.innerHTML += '<option value="迦太基">迦太基</option>';
+        subCategorySelect.innerHTML += '<option value="埃塞俄比亚">埃塞俄比亚</option>';
+        subCategorySelect.innerHTML += '<option value="苏丹">苏丹</option>';
+        subCategorySelect.innerHTML += '<option value="南非">南非</option>';
+        subCategorySelect.innerHTML += '<option value="多米尼加">多米尼加</option>';
+        subCategorySelect.innerHTML += '<option value="大航海">大航海</option>';
+        subCategorySelect.innerHTML += '<option value="南美">南美</option>';
+        subCategorySelect.innerHTML += '<option value="巴西">巴西</option>';
+        subCategorySelect.innerHTML += '<option value="墨西哥">墨西哥</option>';
+        subCategorySelect.innerHTML += '<option value="日本">日本</option>';
+    }
+
+    filterTable();
 }
 
 async function init() {
     const [books3Content, bookLinksContent] = await fetchTextFiles([books3FilePath, bookLinksFilePath]);
     
-    const weights = [0.8, 0.2];
-    allBooks = parseTextFiles([books3Content, bookLinksContent], weights);
+    const weights = [0.4, 0.4, 0.2];
+    allBooks = parseTextFiles([books3Content], weights);
 
     bookLinksContent.split('\n').forEach(line => {
         const [name, link] = line.split(':');
@@ -126,15 +193,10 @@ async function init() {
 
 init();
 
-function switchTab(tabName) {
-    const tabs = document.getElementsByClassName('tab');
-    const tabContents = document.getElementsByClassName('tab-content');
-
-    for (let i = 0; i < tabs.length; i++) {
-        tabs[i].classList.remove('active');
-        tabContents[i].style.display = 'none';
-    }
-
-    document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
-    document.getElementById(tabName).style.display = 'block';
-}
+document.getElementById('categoryFilter').addEventListener('change', loadSubCategories);
+document.getElementById('categoryFilter').addEventListener('change', filterTable);
+document.getElementById('subCategoryFilter').addEventListener('change', filterTable);
+document.getElementById('ratingFilter').addEventListener('change', filterTable);
+document.getElementById('nameFilter').addEventListener('input', filterTable);
+document.getElementById('prevPage').addEventListener('click', () => changePage(-1));
+document.getElementById('nextPage').addEventListener('click', () => changePage(1));
